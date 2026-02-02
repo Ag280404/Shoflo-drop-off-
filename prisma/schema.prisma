@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum SessionOutcome {
+  converted
+  payment_failed
+  abandoned
+}
+
+enum UserType {
+  new
+  returning
+}
+
+enum DeviceType {
+  android
+  ios
+  web
+}
+
+enum PaymentMethod {
+  upi_intent
+  upi_collect
+  card
+  netbanking
+  cod
+}
+
+enum Gateway {
+  g1
+  g2
+  g3
+}
+
+model Session {
+  id               String         @id @default(cuid())
+  startedAt        DateTime
+  userType         UserType
+  city             String
+  pincode          String
+  device           DeviceType
+  cartValue        Int
+  shippingEtaShown Boolean
+  paymentMethod    PaymentMethod
+  gateway          Gateway
+  couponStatus     String
+  modulesUsed      Json
+  outcome          SessionOutcome
+  prepaid          Boolean
+  orderValue       Int
+  createdAt        DateTime       @default(now())
+  events           Event[]
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  sessionId String
+  type      String
+  ts        DateTime
+  meta      Json
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Insight {
+  id               String   @id @default(cuid())
+  createdAt        DateTime @default(now())
+  windowStart      DateTime
+  windowEnd        DateTime
+  filters          Json
+  title            String
+  evidence         Json
+  impactScore      Float
+  recommendedFixes Json
+  experimentPlan   Json
+  status           String
+}
